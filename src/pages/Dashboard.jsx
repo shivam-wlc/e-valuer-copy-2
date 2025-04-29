@@ -44,7 +44,8 @@ const Dashboard = () => {
 
   const [filters, setFilters] = useState({
     company: initialValues.company,
-    parcelName: initialValues.parcelName,
+    // parcelName: initialValues.parcelName,
+    parcelName: "",
     model: [],
     quality: [],
     colour: [],
@@ -56,7 +57,8 @@ const Dashboard = () => {
   const resetFilters = () => {
     setFilters({
       company: initialValues.company,
-      parcelName: initialValues.parcelName,
+      // parcelName: initialValues.parcelName,
+      parcelName: "",
       model: [],
       quality: [],
       colour: [],
