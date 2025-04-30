@@ -21,22 +21,26 @@ const QualityModelBarChart = ({
       })} ${date.getFullYear()}`;
 
       if (!acc[monthYear]) {
-        acc[monthYear] = {};
-      }
-
-      const qualityKey = `${item.Quality}` || "Unknown";
-
-      if (!acc[monthYear][qualityKey]) {
-        acc[monthYear][qualityKey] = {
-          count: 0,
-          totalPricePerCarat: 0,
-          items: 0,
+        acc[monthYear] = {
+          totalValuation: 0,
+          qualities: {},
         };
       }
 
-      acc[monthYear][qualityKey].count += item.StoneCount || 1;
-      acc[monthYear][qualityKey].totalPricePerCarat += item.PricePerCarat || 0;
-      acc[monthYear][qualityKey].items += 1;
+      const qualityKey = `${item.Quality}` || "Unknown";
+      const valuation =
+        item.TotalPrice || (item.PricePerCarat || 0) * (item.Carats || 0);
+
+      if (!acc[monthYear].qualities[qualityKey]) {
+        acc[monthYear].qualities[qualityKey] = {
+          valuation: 0,
+          carats: 0,
+        };
+      }
+
+      acc[monthYear].qualities[qualityKey].valuation += valuation;
+      acc[monthYear].qualities[qualityKey].carats += item.Carats || 0;
+      acc[monthYear].totalValuation += valuation;
 
       return acc;
     }, {});
@@ -49,36 +53,53 @@ const QualityModelBarChart = ({
       ...new Set(data.map((item) => `${item.Quality}` || "Unknown")),
     ].sort();
 
-    // Prepare series data
+    // Prepare series data - now using valuation instead of count
     const seriesData = qualities.map((quality) => ({
       name: quality,
       type: "bar",
       stack: "total",
       emphasis: { focus: "series" },
       data: timePeriods.map((period) => {
-        const qualityData = processedData[period][quality];
-        return qualityData ? qualityData.count : 0;
+        const qualityData = processedData[period].qualities[quality];
+        return qualityData ? qualityData.valuation / 1000 : 0; // Convert to thousands
       }),
-      tooltip: {
-        valueFormatter: (value) => `${value} items`,
-      },
     }));
 
-    // Prepare tooltip formatter
+    // Prepare tooltip formatter to show valuation and percentage of total valuation
     const tooltipFormatter = (params) => {
       const timePeriod = params[0].axisValue;
+      const periodData = processedData[timePeriod];
       let result = `<div style="font-weight:bold;margin-bottom:5px">${timePeriod}</div>`;
+      result += `<div>Total Valuation: ${(
+        periodData.totalValuation / 1000
+      ).toFixed(1)}K</div>`;
+      result += `<hr style="margin:5px 0;border-color:#eee"/>`;
 
       params.forEach((param) => {
         const quality = param.seriesName;
-        const count = param.value;
+        const valuation = param.value * 1000; // Convert back from thousands
+        const qualityData = periodData.qualities[quality];
 
-        result += `
-          <div style="display:flex;align-items:center;margin:5px 0">
-            <div style="width:10px;height:10px;background:${param.color};margin-right:5px"></div>
-            ${quality}: ${count} 
-          </div>
-        `;
+        if (qualityData) {
+          const percentage = (
+            (valuation / periodData.totalValuation) *
+            100
+          ).toFixed(1);
+
+          result += `
+            <div style="display:flex;justify-content:space-between;margin:5px 0">
+              <div style="display:flex;align-items:center;">
+                <div style="width:10px;height:10px;background:${
+                  param.color
+                };margin-right:5px"></div>
+                Quality ${quality}:
+              </div>
+              <div style="text-align:right">
+                ${(valuation / 1000).toFixed(1)}K (${percentage}%)<br/>
+              </div>
+            </div>
+          `;
+        }
       });
 
       return result;
@@ -122,9 +143,9 @@ const QualityModelBarChart = ({
       },
       yAxis: {
         type: "value",
-        name: "Count",
+        name: "Valuation ($K)",
         axisLabel: {
-          formatter: "{value}",
+          formatter: "{value}K",
         },
       },
       series: seriesData,

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
 
-const SizeColorChart = ({
+const ColorDistributionChart = ({
   data,
   dimensions = { width: "100%", height: "500px" },
   onClick,
@@ -21,20 +21,29 @@ const SizeColorChart = ({
       })} ${date.getFullYear()}`;
 
       if (!acc[monthYear]) {
-        acc[monthYear] = {};
-      }
-
-      if (!acc[monthYear][item.Colour]) {
-        acc[monthYear][item.Colour] = {
-          count: 0,
-          totalPricePerCarat: 0,
-          items: 0,
+        acc[monthYear] = {
+          totalCount: 0,
+          totalValuation: 0,
+          colors: {},
         };
       }
 
-      acc[monthYear][item.Colour].count += item.StoneCount || 1;
-      acc[monthYear][item.Colour].totalPricePerCarat += item.PricePerCarat || 0;
-      acc[monthYear][item.Colour].items += 1;
+      const valuation =
+        item.TotalPrice || (item.PricePerCarat || 0) * (item.Carats || 0);
+
+      if (!acc[monthYear].colors[item.Colour]) {
+        acc[monthYear].colors[item.Colour] = {
+          count: 0,
+          valuation: 0,
+          carats: 0,
+        };
+      }
+
+      acc[monthYear].colors[item.Colour].count += item.StoneCount || 1;
+      acc[monthYear].colors[item.Colour].valuation += valuation;
+      acc[monthYear].colors[item.Colour].carats += item.Carats || 0;
+      acc[monthYear].totalCount += item.StoneCount || 1;
+      acc[monthYear].totalValuation += valuation;
 
       return acc;
     }, {});
@@ -45,42 +54,55 @@ const SizeColorChart = ({
     });
     const colors = [...new Set(data.map((item) => item.Colour))].sort();
 
-    // Prepare series data
+    // Prepare series data - now using valuation instead of count
     const seriesData = colors.map((color) => ({
       name: color,
       type: "bar",
       stack: "total",
       emphasis: { focus: "series" },
       data: timePeriods.map((period) => {
-        const colorData = processedData[period][color];
-        return colorData ? colorData.count : 0;
+        const colorData = processedData[period].colors[color];
+        return colorData ? colorData.valuation / 1000 : 0; // Convert to thousands
       }),
-      tooltip: {
-        valueFormatter: (value) => `${value} items`,
-      },
     }));
 
-    // Prepare tooltip formatter
+    // Prepare tooltip formatter to show valuation and percentage of total valuation
     const tooltipFormatter = (params) => {
       const timePeriod = params[0].axisValue;
+      const periodData = processedData[timePeriod];
       let result = `<div style="font-weight:bold;margin-bottom:5px">${timePeriod}</div>`;
+      result += `<div>Total Valuation: ${(
+        periodData.totalValuation / 1000
+      ).toFixed(1)}K</div>`;
+      result += `<hr style="margin:5px 0;border-color:#eee"/>`;
 
       params.forEach((param) => {
         const color = param.seriesName;
-        const count = param.value;
-        // const avgPrice = processedData[timePeriod][color]
-        //   ? (
-        //       processedData[timePeriod][color].totalPricePerCarat /
-        //       processedData[timePeriod][color].items
-        //     ).toFixed(2)
-        //   : 0;
+        const valuation = param.value * 1000; // Convert back from thousands
+        const colorData = periodData.colors[color];
 
-        result += `
-          <div style="display:flex;align-items:center;margin:5px 0">
-            <div style="width:10px;height:10px;background:${param.color};margin-right:5px"></div>
-            ${color}: ${count} 
-          </div>
-        `;
+        if (colorData) {
+          const percentage = (
+            (valuation / periodData.totalValuation) *
+            100
+          ).toFixed(1);
+          const count = colorData.count;
+
+          result += `
+            <div style="display:flex;justify-content:space-between;margin:5px 0">
+              <div style="display:flex;align-items:center;">
+                <div style="width:10px;height:10px;background:${
+                  param.color
+                };margin-right:5px"></div>
+                ${color}:
+              </div>
+              <div style="text-align:right">
+                ${(valuation / 1000).toFixed(1)}K (${percentage}%)<br/>
+               
+              </div>
+            </div>
+          `;
+        }
       });
 
       return result;
@@ -124,9 +146,9 @@ const SizeColorChart = ({
       },
       yAxis: {
         type: "value",
-        name: "Count",
+        name: "Valuation ($K)",
         axisLabel: {
-          formatter: "{value}",
+          formatter: "{value}K",
         },
       },
       series: seriesData,
@@ -175,4 +197,4 @@ const SizeColorChart = ({
   );
 };
 
-export default SizeColorChart;
+export default ColorDistributionChart;
