@@ -68,13 +68,12 @@ const Dashboard = () => {
   const filteredData = useMemo(() => {
     let data = [...diamondData];
 
-    // Filter by ParcelName first
-    // if (filters.parcelName && filters.parcelName.length > 0) {
-    //   data = data.filter((d) => filters.parcelName.includes(d.ParcelName));
-    // }
+    // Filter by company
     if (filters.company.length > 0) {
       data = data.filter((d) => filters.company.includes(d.Company));
     }
+
+    // Filter by other fields
     if (filters.model.length > 0) {
       data = data.filter((d) => filters.model.includes(d.Model));
     }
@@ -87,40 +86,36 @@ const Dashboard = () => {
     if (filters.sizeCategory.length > 0) {
       data = data.filter((d) => filters.sizeCategory.includes(d.SizeCategory));
     }
-    if (filters.sizeCategory.length > 0) {
-      data = data.filter((d) => filters.sizeCategory.includes(d.SizeCategory));
-    }
     if (filters.parcelName && filters.parcelName.length > 0) {
       data = data.filter((item) => item.ParcelName === filters.parcelName);
     }
 
+    // Filter by carat range
     data = data.filter(
       (d) =>
         d.Carats >= filters.caratRange[0] && d.Carats <= filters.caratRange[1]
     );
 
-    const parseDBDate = (str) => {
-      if (!str) return null;
-      const parts = str.split("/");
-      if (parts.length !== 3) return null;
-      let month, day, year;
-      if (parseInt(parts[0], 10) > 12) {
-        [day, month, year] = parts;
-      } else {
-        [month, day, year] = parts;
-      }
-      return new Date(
-        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-      );
-    };
-
+    // Filter by date range (DD/MM/YYYY format)
     if (filters.dateRange.from && filters.dateRange.to) {
+      // Parse the input dates (YYYY-MM-DD format from date inputs)
       const fromDate = new Date(filters.dateRange.from);
       const toDate = new Date(filters.dateRange.to);
 
+      // Adjust toDate to include the entire end day
+      toDate.setHours(23, 59, 59, 999);
+
       data = data.filter((item) => {
-        const auctionDate = parseDBDate(item.AuctionDate);
-        return auctionDate && auctionDate >= fromDate && auctionDate <= toDate;
+        if (!item.AuctionDate) return false;
+
+        // Parse the DD/MM/YYYY date string
+        const [day, month, year] = item.AuctionDate.split("/");
+        const auctionDate = new Date(`${year}-${month}-${day}`);
+
+        // Check if date is valid
+        if (isNaN(auctionDate.getTime())) return false;
+
+        return auctionDate >= fromDate && auctionDate <= toDate;
       });
     }
 
@@ -187,15 +182,19 @@ const Dashboard = () => {
               <Tabs
                 value={viewMode}
                 onChange={(_, newValue) => setViewMode(newValue)}
-                sx={{ minHeight: "auto" }}
+                sx={{
+                  minHeight: "auto",
+                }}
               >
                 <Tab
                   value="graph"
                   icon={<BarChart fontSize="small" />}
+                  label="Graph"
                   sx={{
                     minWidth: "auto",
                     minHeight: "auto",
                     p: 1,
+                    mr: 10,
                     borderRadius: 1,
                     "&.Mui-selected": {
                       bgcolor: "#e3f2fd",
@@ -206,6 +205,7 @@ const Dashboard = () => {
                 <Tab
                   value="table"
                   icon={<TableChart fontSize="small" />}
+                  label="Table"
                   sx={{
                     minWidth: "auto",
                     minHeight: "auto",

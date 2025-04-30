@@ -361,91 +361,91 @@ const FilterPanel = ({ filters, onChange, viewMode, setViewMode }) => {
       </Box>
 
       {/* Date Range: only show if a parcel is selected */}
-      {filters?.parcelName?.length > 0 && (
-        <Box
+      {/* {filters?.parcelName?.length > 0 && ( */}
+      <Box
+        sx={{
+          width: "100%",
+          background: "#f5f7fa",
+          borderRadius: 1.5,
+          p: 0.5,
+          boxShadow: "0 1px 2px 0 rgba(60,72,100,0.05)",
+          mt: 0.5,
+        }}
+      >
+        <Typography
+          variant="caption"
           sx={{
-            width: "100%",
-            background: "#f5f7fa",
-            borderRadius: 1.5,
-            p: 0.5,
-            boxShadow: "0 1px 2px 0 rgba(60,72,100,0.05)",
-            mt: 0.5,
+            fontWeight: 600,
+            color: "#262728",
+            letterSpacing: 0.5,
+            fontSize: "0.75rem",
+            textTransform: "uppercase",
+            display: "block",
+            mb: 1,
           }}
         >
-          <Typography
-            variant="caption"
-            sx={{
-              fontWeight: 600,
-              color: "#262728",
-              letterSpacing: 0.5,
-              fontSize: "0.75rem",
-              textTransform: "uppercase",
-              display: "block",
-              mb: 1,
-            }}
-          >
-            Auction Date Range
-          </Typography>
+          Auction Date Range
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
+        >
           <Box
+            component="input"
+            type="date"
+            value={filters.dateRange.from}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                dateRange: { ...filters.dateRange, from: e.target.value },
+              })
+            }
             sx={{
-              display: "flex",
-              gap: 1,
-              alignItems: "center",
+              flex: 1,
+              p: "6px 8px",
+              borderRadius: 1,
+              border: "1px solid #e0e0e0",
+              bgcolor: "#fff",
+              fontSize: "0.8rem",
+              color: "#262728",
+              "&:focus": {
+                outline: "none",
+                borderColor: "#1976d2",
+                boxShadow: "0 0 0 2px rgba(25, 118, 210, 0.2)",
+              },
             }}
-          >
-            <Box
-              component="input"
-              type="date"
-              value={filters.dateRange.from}
-              onChange={(e) =>
-                onChange({
-                  ...filters,
-                  dateRange: { ...filters.dateRange, from: e.target.value },
-                })
-              }
-              sx={{
-                flex: 1,
-                p: "6px 8px",
-                borderRadius: 1,
-                border: "1px solid #e0e0e0",
-                bgcolor: "#fff",
-                fontSize: "0.8rem",
-                color: "#262728",
-                "&:focus": {
-                  outline: "none",
-                  borderColor: "#1976d2",
-                  boxShadow: "0 0 0 2px rgba(25, 118, 210, 0.2)",
-                },
-              }}
-            />
-            <Box
-              component="input"
-              type="date"
-              value={filters.dateRange.to}
-              onChange={(e) =>
-                onChange({
-                  ...filters,
-                  dateRange: { ...filters.dateRange, to: e.target.value },
-                })
-              }
-              sx={{
-                flex: 1,
-                p: "6px 8px",
-                borderRadius: 1,
-                border: "1px solid #e0e0e0",
-                bgcolor: "#fff",
-                fontSize: "0.8rem",
-                color: "#262728",
-                "&:focus": {
-                  outline: "none",
-                  borderColor: "#1976d2",
-                  boxShadow: "0 0 0 2px rgba(25, 118, 210, 0.2)",
-                },
-              }}
-            />
-          </Box>
+          />
+          <Box
+            component="input"
+            type="date"
+            value={filters.dateRange.to}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                dateRange: { ...filters.dateRange, to: e.target.value },
+              })
+            }
+            sx={{
+              flex: 1,
+              p: "6px 8px",
+              borderRadius: 1,
+              border: "1px solid #e0e0e0",
+              bgcolor: "#fff",
+              fontSize: "0.8rem",
+              color: "#262728",
+              "&:focus": {
+                outline: "none",
+                borderColor: "#1976d2",
+                boxShadow: "0 0 0 2px rgba(25, 118, 210, 0.2)",
+              },
+            }}
+          />
         </Box>
-      )}
+      </Box>
+      {/* )} */}
       {[
         { key: "model", label: "Model", options: models },
         { key: "quality", label: "Quality", options: qualities },
