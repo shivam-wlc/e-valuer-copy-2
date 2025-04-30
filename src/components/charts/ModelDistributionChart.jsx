@@ -1,74 +1,3 @@
-// import React, { useEffect, useRef } from "react";
-// import * as echarts from "echarts";
-// const SizeModelChart = ({
-//   data,
-//   dimensions = { width: "100%", height: "400px" },
-//   onClick,
-// }) => {
-//   const chartRef = useRef(null);
-
-//   useEffect(() => {
-//     if (!chartRef.current) return;
-
-//     const chart = echarts.init(chartRef.current);
-
-//     const sizeCategories = [...new Set(data.map((item) => item.SizeCategory))];
-//     const models = [...new Set(data.map((item) => item.Model))];
-
-//     const seriesData = models.map((model) => ({
-//       name: model,
-//       type: "bar",
-//       stack: "total",
-//       data: sizeCategories.map(
-//         (size) =>
-//           data.filter(
-//             (item) => item.SizeCategory === size && item.Model === model
-//           ).length
-//       ),
-//     }));
-
-//     const option = {
-//       title: { text: "Model Distribution by Size Category", top: 0 },
-//       tooltip: { trigger: "item", axisPointer: { type: "shadow" } },
-//       legend: { data: models, type: "scroll", top: 30 },
-//       grid: {
-//         top: 100,
-//         left: "3%",
-//         right: "4%",
-//         bottom: "3%",
-//         containLabel: true,
-//       },
-//       xAxis: {
-//         type: "category",
-//         data: sizeCategories,
-//         name: "Size Category",
-//         nameLocation: "middle",
-//         nameGap: 22,
-//       },
-//       yAxis: { type: "value", name: "Count" },
-
-//       series: seriesData,
-//     };
-
-//     chart.setOption(option);
-
-//     chart.on("click", (params) => {
-//       if (onClick) {
-//         onClick({ model: params.seriesName }); // or appropriate key/value
-//       }
-//     });
-
-//     return () => chart.dispose();
-//   }, [data]);
-
-//   return (
-//     <div
-//       ref={chartRef}
-//       style={{ width: dimensions.width, height: dimensions.height }}
-//     />
-//   );
-// };
-// export default SizeModelChart;
 import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
 
@@ -92,20 +21,25 @@ const ModelDistributionChart = ({
       })} ${date.getFullYear()}`;
 
       if (!acc[monthYear]) {
-        acc[monthYear] = {};
-      }
-
-      if (!acc[monthYear][item.Model]) {
-        acc[monthYear][item.Model] = {
-          count: 0,
-          totalPricePerCarat: 0,
-          items: 0,
+        acc[monthYear] = {
+          totalValuation: 0,
+          models: {},
         };
       }
 
-      acc[monthYear][item.Model].count += item.StoneCount || 1;
-      acc[monthYear][item.Model].totalPricePerCarat += item.PricePerCarat || 0;
-      acc[monthYear][item.Model].items += 1;
+      const valuation =
+        item.TotalPrice || (item.PricePerCarat || 0) * (item.Carats || 0);
+
+      if (!acc[monthYear].models[item.Model]) {
+        acc[monthYear].models[item.Model] = {
+          valuation: 0,
+          carats: 0,
+        };
+      }
+
+      acc[monthYear].models[item.Model].valuation += valuation;
+      acc[monthYear].models[item.Model].carats += item.Carats || 0;
+      acc[monthYear].totalValuation += valuation;
 
       return acc;
     }, {});
@@ -116,36 +50,64 @@ const ModelDistributionChart = ({
     });
     const models = [...new Set(data.map((item) => item.Model))].sort();
 
-    // Prepare series data
+    // Prepare series data - using valuation instead of count
     const seriesData = models.map((model) => ({
       name: model,
       type: "bar",
       stack: "total",
       emphasis: { focus: "series" },
       data: timePeriods.map((period) => {
-        const modelData = processedData[period][model];
-        return modelData ? modelData.count : 0;
+        const modelData = processedData[period].models[model];
+        return modelData ? modelData.valuation / 1000 : 0;
       }),
-      tooltip: {
-        valueFormatter: (value) => `${value} items`,
-      },
     }));
 
-    // Prepare tooltip formatter
+    // Prepare tooltip formatter to show valuation and percentage
     const tooltipFormatter = (params) => {
       const timePeriod = params[0].axisValue;
+      const periodData = processedData[timePeriod];
       let result = `<div style="font-weight:bold;margin-bottom:5px">${timePeriod}</div>`;
+      // result += `<div>Total Valuation: ${periodData.totalValuation.toLocaleString(
+      //   "en-US",
+      //   {
+      //     style: "currency",
+      //     currency: "USD",
+      //     minimumFractionDigits: 0,
+      //     maximumFractionDigits: 0,
+      //   }
+      // )}</div>`;
+      result += `<div>Total Valuation: ${(
+        periodData.totalValuation / 1000
+      ).toFixed(1)}K</div>`;
+      result += `<hr style="margin:5px 0;border-color:#eee"/>`;
 
       params.forEach((param) => {
         const model = param.seriesName;
-        const count = param.value;
+        const valuation = param.value * 1000;
+        const modelData = periodData.models[model];
 
-        result += `
-          <div style="display:flex;align-items:center;margin:5px 0">
-            <div style="width:10px;height:10px;background:${param.color};margin-right:5px"></div>
-            ${model}: ${count} 
-          </div>
-        `;
+        if (modelData) {
+          const percentage = (
+            (valuation / periodData.totalValuation) *
+            100
+          ).toFixed(1);
+          const carats = modelData.carats;
+
+          result += `
+            <div style="display:flex;justify-content:space-between;margin:5px 0">
+              <div style="display:flex;align-items:center;">
+                <div style="width:10px;height:10px;background:${
+                  param.color
+                };margin-right:5px"></div>
+                ${model}:
+              </div>
+              <div style="text-align:right">
+                ${(valuation / 1000).toFixed(1)}K (${percentage}%)<br/>
+               
+              </div>
+            </div>
+          `;
+        }
       });
 
       return result;
@@ -189,9 +151,17 @@ const ModelDistributionChart = ({
       },
       yAxis: {
         type: "value",
-        name: "Count",
+        name: "Valuation ($K)",
         axisLabel: {
-          formatter: "{value}",
+          // formatter: (value) => {
+          //   if (value >= 1000000) {
+          //     return `$${(value / 1000000).toFixed(0)}M`;
+          //   } else if (value >= 1000) {
+          //     return `$${(value / 1000).toFixed(0)}K`;
+          //   }
+          //   return `$${value}`;
+          // },
+          formatter: "{value}K",
         },
       },
       series: seriesData,

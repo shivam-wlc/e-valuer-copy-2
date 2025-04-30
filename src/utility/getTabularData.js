@@ -50,8 +50,8 @@ export const getSizeColorTableData = (chartData) => {
           0
         );
       }
-      row[`${period} (Avg Weight)`] =
-        periodItems.length > 0 ? totalCarats / periodItems.length : 0;
+      // row[`${period} (Avg Weight)`] =
+      //   periodItems.length > 0 ? totalCarats / periodItems.length : 0;
       row[`${period} (Total Weight)`] = totalCarats;
       row[`${period} ($/Carat Avg)`] =
         periodItems.length > 0 ? totalPricePerCarat / periodItems.length : 0;
@@ -74,12 +74,12 @@ export const getSizeColorTableData = (chartData) => {
     comparativeData.forEach((row) => {
       totalEval += row[`${period} (Valuation)`];
       totalDollarPerCarat += row[`${period} ($/Carat Avg)`];
-      totalAvgWt += row[`${period} (Avg Weight)`];
+      // totalAvgWt += row[`${period} (Avg Weight)`];
       totalWeight += row[`${period} (Total Weight)`];
       if (row[`${period} (Valuation)`] > 0) countRows++;
     });
-    summaryRow[`${period} (Avg Weight)`] =
-      countRows > 0 ? totalAvgWt / countRows : 0;
+    // summaryRow[`${period} (Avg Weight)`] =
+    //   countRows > 0 ? totalAvgWt / countRows : 0;
     summaryRow[`${period} (Total Weight)`] = totalWeight;
     summaryRow[`${period} ($/Carat Avg)`] =
       countRows > 0 ? totalDollarPerCarat / countRows : 0;

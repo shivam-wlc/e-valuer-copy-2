@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-
 import {
   Box,
   Paper,
@@ -18,12 +17,10 @@ import {
 
 import { diamondData } from "../utility/data";
 
-import SizeColorChart from "../components/charts/SizeColorChart";
-import SizeModelChart from "../components/charts/SizeModelChart";
-import QualityModelBarChart from "../components/charts/QualityModelBarChart";
 import SizeDistributionChart from "../components/charts/SizeDistributionChart";
-import PricePerCaratChart from "../components/charts/PricePerCaratChart";
-import TotalValueChart from "../components/charts/TotalValueChart";
+import ColorDistributionChart from "../components/charts/ColorDistributionChart";
+import ModelDistributionChart from "../components/charts/ModelDistributionChart";
+import QualityDistributionChart from "../components/charts/QualityDistributionChart";
 import CombinedValueChart from "../components/charts/CombinedValueChart";
 
 import FilterPanel from "../components/filters/FilterPanel";
@@ -254,27 +251,6 @@ const Dashboard = () => {
               gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
             }}
           >
-            <ExpandableChart chartData={filteredData} title="PriceTrendChart">
-              <CombinedValueChart
-                data={filteredData}
-                onClick={handleChartClick}
-              />
-            </ExpandableChart>
-
-            <ExpandableChart
-              chartData={filteredData}
-              title="ColorDistributionChart"
-            >
-              <SizeColorChart data={filteredData} onClick={handleChartClick} />
-            </ExpandableChart>
-
-            <ExpandableChart
-              chartData={filteredData}
-              title="ModelDistributionChart"
-            >
-              <SizeModelChart data={filteredData} onClick={handleChartClick} />
-            </ExpandableChart>
-
             <ExpandableChart
               chartData={filteredData}
               title="SizeDistributionChart"
@@ -287,30 +263,43 @@ const Dashboard = () => {
 
             <ExpandableChart
               chartData={filteredData}
-              title="QualityModelBarChart"
+              title="ColorDistributionChart"
             >
-              <QualityModelBarChart
-                data={filteredData}
-                onClick={handleChartClick}
-              />
-            </ExpandableChart>
-
-            {/* <ExpandableChart
-            // chartData={filteredData}
-            // title="QualityModelBarChart"
-            >
-              <PricePerCaratChart
+              <ColorDistributionChart
                 data={filteredData}
                 onClick={handleChartClick}
               />
             </ExpandableChart>
 
             <ExpandableChart
-            // chartData={filteredData}
-            // title="QualityModelBarChart"
+              chartData={filteredData}
+              title="ModelDistributionChart"
             >
-              <TotalValueChart data={filteredData} onClick={handleChartClick} />
-            </ExpandableChart> */}
+              <ModelDistributionChart
+                data={filteredData}
+                onClick={handleChartClick}
+              />
+            </ExpandableChart>
+
+            <ExpandableChart
+              chartData={filteredData}
+              title="QualityDistributionChart"
+            >
+              <QualityDistributionChart
+                data={filteredData}
+                onClick={handleChartClick}
+              />
+            </ExpandableChart>
+
+            <ExpandableChart
+              chartData={filteredData}
+              title="CombinedValueChart"
+            >
+              <CombinedValueChart
+                data={filteredData}
+                onClick={handleChartClick}
+              />
+            </ExpandableChart>
           </Box>
         ) : (
           <DataTableView data={filteredData} />

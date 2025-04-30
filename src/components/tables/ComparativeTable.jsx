@@ -40,12 +40,27 @@ const ComparativeTable = ({ tableData }) => {
       mainCol1 = "Label";
     else mainCol1 = Object.keys(data[0])[0];
   }
-  const subColumns = [
-    { key: "Avg Weight", label: "Avg. Weight" },
-    { key: "Total Weight", label: "Total Weight" },
-    { key: "$/Carat Avg", label: "$/Carat (Avg)" },
-    { key: "Valuation", label: "Valuation" },
-  ];
+  // const subColumns = [
+  //   { key: "Avg Weight", label: "Avg. Weight" },
+  //   { key: "Total Weight", label: "Total Weight" },
+  //   { key: "$/Carat Avg", label: "$/Carat (Avg)" },
+  //   { key: "Valuation", label: "Valuation" },
+  // ];
+
+  // Define subColumns based on main column
+  const subColumns =
+    mainCol1 === "Size"
+      ? [
+          { key: "Avg Weight", label: "Avg. Weight" },
+          { key: "Total Weight", label: "Total Weight" },
+          { key: "$/Carat Avg", label: "$/Carat (Avg)" },
+          { key: "Valuation", label: "Valuation" },
+        ]
+      : [
+          { key: "Total Weight", label: "Total Weight" },
+          { key: "$/Carat Avg", label: "$/Carat (Avg)" },
+          { key: "Valuation", label: "Valuation" },
+        ];
 
   return (
     <Box

@@ -21,22 +21,30 @@ const SizeDistributionChart = ({
       })} ${date.getFullYear()}`;
 
       if (!acc[monthYear]) {
-        acc[monthYear] = {};
-      }
-
-      const sizeKey = item.SizeCategory || item.SizeGroup || "Unknown";
-
-      if (!acc[monthYear][sizeKey]) {
-        acc[monthYear][sizeKey] = {
-          count: 0,
-          totalPricePerCarat: 0,
-          items: 0,
+        acc[monthYear] = {
+          totalCount: 0,
+          totalValuation: 0,
+          sizes: {},
         };
       }
 
-      acc[monthYear][sizeKey].count += item.StoneCount || 1;
-      acc[monthYear][sizeKey].totalPricePerCarat += item.PricePerCarat || 0;
-      acc[monthYear][sizeKey].items += 1;
+      const sizeKey = item.SizeCategory || item.SizeGroup || "Unknown";
+      const valuation =
+        item.TotalPrice || (item.PricePerCarat || 0) * (item.Carats || 0);
+
+      if (!acc[monthYear].sizes[sizeKey]) {
+        acc[monthYear].sizes[sizeKey] = {
+          // count: 0,
+          valuation: 0,
+          carats: 0,
+        };
+      }
+
+      // acc[monthYear].sizes[sizeKey].count += item.StoneCount || 1;
+      acc[monthYear].sizes[sizeKey].valuation += valuation;
+      acc[monthYear].sizes[sizeKey].carats += item.Carats || 0;
+      // acc[monthYear].totalCount += item.StoneCount || 1;
+      acc[monthYear].totalValuation += valuation;
 
       return acc;
     }, {});
@@ -51,36 +59,55 @@ const SizeDistributionChart = ({
       ),
     ].sort();
 
-    // Prepare series data
+    // Prepare series data - now using valuation instead of count
     const seriesData = sizes.map((size) => ({
       name: size,
       type: "bar",
       stack: "total",
       emphasis: { focus: "series" },
       data: timePeriods.map((period) => {
-        const sizeData = processedData[period][size];
-        return sizeData ? sizeData.count : 0;
+        const sizeData = processedData[period].sizes[size];
+        return sizeData ? sizeData.valuation / 1000 : 0; // Convert to thousands
       }),
-      tooltip: {
-        valueFormatter: (value) => `${value} items`,
-      },
     }));
 
-    // Prepare tooltip formatter
+    // Prepare tooltip formatter to show valuation and percentage of total valuation
     const tooltipFormatter = (params) => {
       const timePeriod = params[0].axisValue;
+      const periodData = processedData[timePeriod];
       let result = `<div style="font-weight:bold;margin-bottom:5px">${timePeriod}</div>`;
+      result += `<div>Total Valuation: ${(
+        periodData.totalValuation / 1000
+      ).toFixed(1)}K</div>`;
+      result += `<hr style="margin:5px 0;border-color:#eee"/>`;
 
       params.forEach((param) => {
-        const sizeCategory = param.seriesName;
-        const count = param.value;
+        const size = param.seriesName;
+        const valuation = param.value * 1000; // Convert back from thousands
+        const sizeData = periodData.sizes[size];
 
-        result += `
-          <div style="display:flex;align-items:center;margin:5px 0">
-            <div style="width:10px;height:10px;background:${param.color};margin-right:5px"></div>
-            ${size}: ${count} 
-          </div>
-        `;
+        if (sizeData) {
+          const percentage = (
+            (valuation / periodData.totalValuation) *
+            100
+          ).toFixed(1);
+          // const count = sizeData.count;
+
+          result += `
+            <div style="display:flex;justify-content:space-between;margin:5px 0">
+              <div style="display:flex;align-items:center;">
+                <div style="width:10px;height:10px;background:${
+                  param.color
+                };margin-right:5px"></div>
+                ${size}:
+              </div>
+              <div style="text-align:right">
+                ${(valuation / 1000).toFixed(1)}K (${percentage}%)<br/>
+               
+              </div>
+            </div>
+          `;
+        }
       });
 
       return result;
@@ -124,9 +151,9 @@ const SizeDistributionChart = ({
       },
       yAxis: {
         type: "value",
-        name: "Count",
+        name: "Valuation ($K)",
         axisLabel: {
-          formatter: "{value}",
+          formatter: "{value}K",
         },
       },
       series: seriesData,
@@ -149,7 +176,6 @@ const SizeDistributionChart = ({
 
     // Click event handling
     chart.on("click", (params) => {
-      console.log("params ", params);
       if (onClick && params.seriesType === "bar") {
         onClick({
           sizeCategory: params.seriesName,
