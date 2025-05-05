@@ -26,6 +26,8 @@ import CombinedValueChart from "../components/charts/CombinedValueChart";
 import FilterPanel from "../components/filters/FilterPanel";
 import DataTableView from "../components/tables/DataTableView";
 import ExpandableChart from "../components/ExpandableChart";
+import QualityModelBarChart from "../components/charts/QualityDistributionChart";
+import QualityModelBarChartNew from "../components/charts/QualityDistributionChartNew";
 
 const Dashboard = () => {
   const [viewMode, setViewMode] = useState("graph");
@@ -296,6 +298,15 @@ const Dashboard = () => {
               title="CombinedValueChart"
             >
               <CombinedValueChart
+                data={filteredData}
+                onClick={handleChartClick}
+              />
+            </ExpandableChart>
+            <ExpandableChart
+              chartData={filteredData}
+              title="CombinedValueChart"
+            >
+              <QualityModelBarChartNew
                 data={filteredData}
                 onClick={handleChartClick}
               />

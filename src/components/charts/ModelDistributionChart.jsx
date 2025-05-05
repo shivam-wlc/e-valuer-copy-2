@@ -149,6 +149,7 @@ const ModelDistributionChart = ({
       return result;
     };
 
+    console.log(timePeriods.length,"time period")
     const option = {
       title: {
         text: "Model Distribution",
@@ -181,7 +182,7 @@ const ModelDistributionChart = ({
         nameLocation: "middle",
         nameGap: 22,
         axisLabel: {
-          rotate: timePeriods.length > 6 ? 45 : 0,
+          rotate: timePeriods.length > 4 ? 45 : 0,
           interval: 0,
         },
       },

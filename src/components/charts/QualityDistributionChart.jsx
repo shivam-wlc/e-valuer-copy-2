@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
 
-const QualityModelBarChart = ({
+const QualityModelBarChartNew = ({
   data,
   dimensions = { width: "100%", height: "500px" },
   onClick,
@@ -63,6 +63,41 @@ const QualityModelBarChart = ({
         const qualityData = processedData[period].qualities[quality];
         return qualityData ? qualityData.valuation / 1000 : 0; // Convert to thousands
       }),
+
+      label: {
+        show: true,
+        position: "inside",
+        formatter: (params) => {
+          const timePeriod = params.name;
+
+          const periodData = processedData[timePeriod];
+
+          if (periodData?.qualities) {
+            let data = periodData?.qualities;
+            const filteredData = Object.entries(data).filter(
+              ([key, value]) => value.valuation >= 10
+            );
+
+            if (filteredData.length < 8) {
+              const value = params.value * 1000;
+              const total = periodData?.totalValuation || 1;
+              const percent = (value / total) * 100;
+
+              if (value === 0) {
+                return "";
+              }
+
+              return `${percent.toFixed(1)}%`;
+            } else {
+              return "";
+            }
+          } else {
+            return "";
+          }
+        },
+        fontSize: 10,
+        color: "#fff",
+      },
     }));
 
     // Prepare tooltip formatter to show valuation and percentage of total valuation
@@ -137,7 +172,7 @@ const QualityModelBarChart = ({
         nameLocation: "middle",
         nameGap: 22,
         axisLabel: {
-          rotate: timePeriods.length > 6 ? 45 : 0,
+          rotate: timePeriods.length > 4 ? 45 : 0,
           interval: 0,
         },
       },
@@ -194,4 +229,4 @@ const QualityModelBarChart = ({
   );
 };
 
-export default QualityModelBarChart;
+export default QualityModelBarChartNew;

@@ -176,7 +176,7 @@ const ColorDistributionChart = ({
         nameLocation: "middle",
         nameGap: 22,
         axisLabel: {
-          rotate: timePeriods.length > 6 ? 45 : 0,
+          rotate: timePeriods.length > 4 ? 45 : 0,
           interval: 0,
         },
       },
