@@ -7,6 +7,7 @@ import {
   Button,
   Tabs,
   Tab,
+  ButtonGroup,
 } from "@mui/material";
 import {
   FilterList,
@@ -28,6 +29,7 @@ import DataTableView from "../components/tables/DataTableView";
 import ExpandableChart from "../components/ExpandableChart";
 import QualityModelBarChart from "../components/charts/QualityDistributionChart";
 import QualityModelBarChartNew from "../components/charts/QualityDistributionChartNew";
+import Navbar from "../components/Navbar";
 
 const Dashboard = () => {
   const [viewMode, setViewMode] = useState("graph");
@@ -142,6 +144,7 @@ const Dashboard = () => {
 
   return (
     <Box>
+      <Navbar viewMode={viewMode} setViewMode={setViewMode} />
       <Box sx={{ display: "flex", gap: 3, p: 2 }}>
         <Paper
           elevation={3}
@@ -304,7 +307,7 @@ const Dashboard = () => {
             </ExpandableChart>
             <ExpandableChart
               chartData={filteredData}
-              title="CombinedValueChart"
+              title="QualityDistributionChart"
             >
               <QualityModelBarChartNew
                 data={filteredData}
