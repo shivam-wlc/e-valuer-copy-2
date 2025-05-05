@@ -77,6 +77,7 @@ const QualityModelChart = ({
       return [
         {
           name: `Quality ${quality} (Value)`,
+          triggerLineEvent: true,
           type: "line",
           stack: "value",
           areaStyle: {
@@ -89,11 +90,15 @@ const QualityModelChart = ({
               opacity: 0.8,
             },
           },
+          symbol: "circle", // ADD THIS
+          symbolSize: 8, // ADD THIS
+          showSymbol: true, // ADD THIS
           data: areaData,
           z: 10,
         },
         {
           name: `Quality ${quality} (%)`,
+          triggerLineEvent: true,
           type: "line",
           yAxisIndex: 1,
           symbol: "circle",
@@ -343,31 +348,26 @@ const QualityModelChart = ({
 
     chart.setOption(option);
 
-   
     // Click event handling
     chart.on("click", (params) => {
-        console.log("Chart clicked:", params);
-        
-        if (onClick) {
-          if (params.seriesName === "Total Valuation") {
-            console.log("Total Valuation clicked:", params.name);
+      if (onClick) {
+        if (params.seriesName === "Total Valuation") {
+          onClick({
+            isTotal: true,
+            timePeriod: params.name,
+          });
+        } else {
+          // Extract quality from series name
+          const match = params.seriesName.match(/Quality (\d+)/);
+          if (match) {
             onClick({
-              isTotal: true,
+              quality: Number(match[1]),
               timePeriod: params.name,
             });
-          } else {
-            // Extract quality from series name
-            const match = params.seriesName.match(/Quality (\d+)/);
-            if (match) {
-              console.log("Quality clicked:", Number(match[1]), params.name);
-              onClick({
-                quality: Number(match[1]),
-                timePeriod: params.name,
-              });
-            }
           }
         }
-      });
+      }
+    });
 
     // Handle resize
     const handleResize = () => chart.resize();

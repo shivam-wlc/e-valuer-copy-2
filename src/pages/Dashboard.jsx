@@ -7,6 +7,8 @@ import {
   Button,
   Tabs,
   Tab,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import {
   FilterList,
@@ -140,6 +142,8 @@ const Dashboard = () => {
     }));
   };
 
+  // const isGraph = viewMode === "graph";
+
   return (
     <Box>
       <Box sx={{ display: "flex", gap: 3, p: 2 }}>
@@ -244,77 +248,199 @@ const Dashboard = () => {
           </Box>
         </Paper>
 
-        {viewMode === "graph" ? (
-          <Box
+        <Box sx={{ width: "75%" }}>
+          <Paper
+            elevation={0}
             sx={{
-              flex: 1,
-              display: "grid",
-              gap: 3,
-              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              p: 2,
+              mb: 3,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              transition: "all 0.3s ease",
+              borderRadius: 2,
+              boxShadow: "0 1px 4px 0 rgba(60,72,100,0.06)",
+
+              position: "sticky",
+              top: 0,
+              zIndex:10,
             }}
           >
-            <ExpandableChart
-              chartData={filteredData}
-              title="SizeDistributionChart"
-            >
-              <SizeDistributionChart
-                data={filteredData}
-                onClick={handleChartClick}
-              />
-            </ExpandableChart>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <BarChart color="primary" sx={{ mr: 1.5, fontSize: 26 }} />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Data Visualization
+              </Typography>
+            </Box>
 
-            <ExpandableChart
-              chartData={filteredData}
-              title="ColorDistributionChart"
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                bgcolor: "action.hover",
+                borderRadius: 6,
+                p: 0.5,
+                position: "relative",
+              }}
             >
-              <ColorDistributionChart
-                data={filteredData}
-                onClick={handleChartClick}
+              <Box
+                sx={{
+                  position: "absolute",
+                  height: "calc(100% - 8px)",
+                  width: "46%",
+                  bgcolor: "background.paper",
+                  borderRadius: 5,
+                  boxShadow: 1,
+                  left: viewMode === "table" ? 4 : "50%",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  zIndex: 0,
+                }}
               />
-            </ExpandableChart>
 
-            <ExpandableChart
-              chartData={filteredData}
-              title="ModelDistributionChart"
-            >
-              <ModelDistributionChart
-                data={filteredData}
-                onClick={handleChartClick}
-              />
-            </ExpandableChart>
+              <Box
+                onClick={() => setViewMode("graph")}
+                sx={{
+                  px: 2,
+                  py: 1,
+                  borderRadius: 5,
+                  display: "flex",
+                  alignItems: "center",
+                  position: "relative",
+                  zIndex: 1,
+                  cursor: "pointer",
+                }}
+              >
+                <BarChart
+                  sx={{
+                    fontSize: 20,
+                    mr: 1,
+                    color:
+                      viewMode === "graph" ? "primary.main" : "text.secondary",
+                  }}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 500,
+                    color:
+                      viewMode === "graph" ? "primary.main" : "text.secondary",
+                  }}
+                >
+                  Graph
+                </Typography>
+              </Box>
+              <Box
+                onClick={() => setViewMode("table")}
+                sx={{
+                  px: 2,
+                  py: 1,
+                  borderRadius: 5,
+                  display: "flex",
+                  alignItems: "center",
+                  position: "relative",
+                  zIndex: 1,
+                  cursor: "pointer",
+                }}
+              >
+                <TableChart
+                  sx={{
+                    fontSize: 20,
+                    mr: 1,
+                    color:
+                      viewMode === "table" ? "primary.main" : "text.secondary",
+                  }}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 500,
+                    color:
+                      viewMode === "table" ? "primary.main" : "text.secondary",
+                  }}
+                >
+                  Table
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
 
-            <ExpandableChart
-              chartData={filteredData}
-              title="QualityDistributionChart"
+          {viewMode === "graph" ? (
+            <Box
+              sx={{
+                flex: 1,
+                display: "grid",
+                gap: 3,
+                gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              }}
             >
-              <QualityDistributionChart
-                data={filteredData}
-                onClick={handleChartClick}
-              />
-            </ExpandableChart>
+              <ExpandableChart
+                chartData={filteredData}
+                title="SizeDistributionChart"
+              >
+                <SizeDistributionChart
+                  data={filteredData}
+                  onClick={handleChartClick}
+                />
+              </ExpandableChart>
 
-            <ExpandableChart
-              chartData={filteredData}
-              title="CombinedValueChart"
-            >
-              <CombinedValueChart
-                data={filteredData}
-                onClick={handleChartClick}
-              />
-            </ExpandableChart>
-            <ExpandableChart
-              chartData={filteredData}
-              title="CombinedValueChart"
-            >
-              <QualityModelBarChartNew
-                data={filteredData}
-                onClick={handleChartClick}
-              />
-            </ExpandableChart>
-          </Box>
-        ) : (
-          <DataTableView data={filteredData} />
-        )}
+              <ExpandableChart
+                chartData={filteredData}
+                title="ColorDistributionChart"
+              >
+                <ColorDistributionChart
+                  data={filteredData}
+                  onClick={handleChartClick}
+                />
+              </ExpandableChart>
+
+              <ExpandableChart
+                chartData={filteredData}
+                title="ModelDistributionChart"
+              >
+                <ModelDistributionChart
+                  data={filteredData}
+                  onClick={handleChartClick}
+                />
+              </ExpandableChart>
+
+              <ExpandableChart
+                chartData={filteredData}
+                title="QualityDistributionChart"
+              >
+                <QualityDistributionChart
+                  data={filteredData}
+                  onClick={handleChartClick}
+                />
+              </ExpandableChart>
+
+              <ExpandableChart
+                chartData={filteredData}
+                title="CombinedValueChart"
+              >
+                <CombinedValueChart
+                  data={filteredData}
+                  onClick={handleChartClick}
+                />
+              </ExpandableChart>
+              <ExpandableChart
+                chartData={filteredData}
+                title="CombinedValueChart"
+              >
+                <QualityModelBarChartNew
+                  data={filteredData}
+                  onClick={handleChartClick}
+                />
+              </ExpandableChart>
+            </Box>
+          ) : (
+            <Box>
+              <DataTableView data={filteredData} />
+            </Box>
+          )}
+        </Box>
       </Box>
     </Box>
   );

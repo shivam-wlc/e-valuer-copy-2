@@ -13,6 +13,8 @@ const SizeDistributionChart = ({
 
     const chart = echarts.init(chartRef.current);
 
+    console.log(data,"data")
+
     // Process data - group by month/year and size category
     const processedData = data.reduce((acc, item) => {
       const date = new Date(item.AuctionDate.split("/").reverse().join("-"));
@@ -76,11 +78,15 @@ const SizeDistributionChart = ({
         formatter: (params) => {
           const timePeriod = params.name;
 
+          console.log(processedData,6666)
           const periodData = processedData[timePeriod];
+
+          console.log(periodData,454545)
 
           if (periodData?.sizes) {
             let data = periodData?.sizes;
 
+            console.log(data,3232323)
             const filteredData = Object.entries(data).filter(
               ([key, value]) => value.valuation >= 10
             );
@@ -125,6 +131,8 @@ const SizeDistributionChart = ({
         const size = param.seriesName;
         const valuation = param.value * 1000; // Convert back from thousands
         const sizeData = periodData.sizes[size];
+
+        
 
         if (sizeData) {
           const percentage = (

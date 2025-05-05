@@ -222,43 +222,111 @@ const CombinedValueChart = ({
           smooth: true,
           data: totalValues,
           yAxisIndex: 1,
+          // Enhanced line style with gradient and shadow
           lineStyle: {
-            width: 3,
-            color: "#2f4554",
+            width: 4,
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: '#2b5876' },
+                { offset: 1, color: '#4e4376' }
+              ]
+            },
+            cap: 'round'
           },
-          symbolSize: 8,
+          // Larger, more visible symbols without shadows
+          symbolSize: 10,
           itemStyle: {
-            color: "#2f4554",
+            color: {
+              type: 'radial',
+              x: 0.5,
+              y: 0.5,
+              r: 0.5,
+              colorStops: [
+                { offset: 0, color: '#4e4376' },
+                { offset: 1, color: '#2b5876' }
+              ]
+            },
+            borderColor: '#fff',
+            borderWidth: 2
           },
+          // Enhanced label with animation and better visuals
           label: {
             show: true,
-            position: "bottom",
+            position: "top",
+            distance: 15,
             formatter: function (params) {
               const idx = params.dataIndex;
+              const value = params.value; // The actual total value
               const change = totalValueChanges[idx];
+              
+              // Always show the actual value
               if (change === null || change === undefined || idx === 0)
-                return "";
+                return `{value|${value.toLocaleString()}}`;
+                
+              // Show both value and percentage change for other points
               const sign = change >= 0 ? "+" : "";
-              return `{tv|${sign}${change.toFixed(2)}%}`;
+              return `{value|${value.toLocaleString()}}\n{tv|${sign}${change.toFixed(1)}%}`;
             },
             rich: {
+              value: {
+                color: "#2f4554",
+                fontWeight: "bold",
+                fontSize: 13,
+                fontFamily: "'Montserrat', sans-serif",
+                padding: [2, 6],
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                borderRadius: 4,
+                lineHeight: 20
+              },
               tv: {
-                color: function (params) {
-                  const idx = params.dataIndex;
-                  const change = totalValueChanges[idx];
-                  return change >= 0 ? "#4caf50" : "#f44336";
-                },
+                color: "#ffffff",
                 fontWeight: "bold",
                 fontSize: 12,
-                padding: [2, 4],
+                fontFamily: "'Montserrat', sans-serif",
+                padding: [3, 6],
                 borderRadius: 4,
-                // backgroundColor: "rgba(255,255,255,0.7)",
-                backgroundColor: "#2f4554",
-                color: "#fff",
-              },
+                backgroundColor: function (params) {
+                  const idx = params.dataIndex;
+                  const change = totalValueChanges[idx];
+                  return change >= 0 
+                    ? { 
+                        type: 'linear', 
+                        x: 0, y: 0, x2: 0, y2: 1, 
+                        colorStops: [
+                          { offset: 0, color: '#43c6ac' },
+                          { offset: 1, color: '#28a745' }
+                        ]
+                      } 
+                    : {
+                        type: 'linear',
+                        x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                          { offset: 0, color: '#ff6b6b' },
+                          { offset: 1, color: '#dc3545' }
+                        ]
+                      };
+                }
+              }
             },
           },
-        },
+          // Remove area shading under the line
+          areaStyle: null,
+          // Add animation effects
+          animationDuration: 1500,
+          animationEasing: 'elasticOut',
+          emphasis: {
+            itemStyle: {
+              borderWidth: 3,
+              borderColor: '#fff',
+              scale: 1.2
+            }
+          }
+        }
       ],
     };
 
