@@ -73,6 +73,7 @@ const CombinedValueChart = ({
       if (prev === 0) return null;
       return ((curr - prev) / prev) * 100;
     });
+
     const totalValueChanges = totalValues.map((val, idx, arr) => {
       if (idx === 0) return null;
       const prev = parseFloat(arr[idx - 1]);
@@ -80,6 +81,42 @@ const CombinedValueChart = ({
       if (prev === 0) return null;
       return ((curr - prev) / prev) * 100;
     });
+
+    // Prepare visual data with colors
+    const pricePerCaratVisualData = [];
+    const totalValueVisualData = [];
+
+    // For price per carat
+    for (let i = 0; i < averagePrices.length; i++) {
+      if (i === 0) {
+        pricePerCaratVisualData.push(averagePrices[i]);
+      } else {
+        const change = pricePerCaratChanges[i];
+        const color = change >= 0 ? "#4CAF50" : "#F44336";
+        pricePerCaratVisualData.push({
+          value: averagePrices[i],
+          itemStyle: {
+            color: color,
+          },
+        });
+      }
+    }
+
+    // For total value
+    for (let i = 0; i < totalValues.length; i++) {
+      if (i === 0) {
+        totalValueVisualData.push(totalValues[i]);
+      } else {
+        const change = totalValueChanges[i];
+        const color = change >= 0 ? "#4CAF50" : "#F44336";
+        totalValueVisualData.push({
+          value: totalValues[i],
+          itemStyle: {
+            color: color,
+          },
+        });
+      }
+    }
 
     const option = {
       title: {
@@ -121,7 +158,7 @@ const CombinedValueChart = ({
                 };margin-right:5px"></span>
                 ${param.seriesName}: ${
               param.seriesIndex === 1
-                ? `$${(param.value * 1000).toLocaleString()}`
+                ? `$${(parseFloat(param.value) * 1000).toLocaleString()}`
                 : `$${param.value}`
             }
                 ${changeText}
@@ -177,40 +214,45 @@ const CombinedValueChart = ({
           name: "$/Carat",
           type: "line",
           smooth: true,
-          data: averagePrices,
+          data: pricePerCaratVisualData,
           yAxisIndex: 0,
           lineStyle: {
             width: 3,
-            color: "#c23531",
+            // color: "#c23531",
           },
           symbolSize: 8,
           itemStyle: {
-            color: "#c23531",
+            // color: "#c23531",
+            // width: 2,
           },
           label: {
             show: true,
             position: "top",
             formatter: function (params) {
               const idx = params.dataIndex;
+              if (idx === 0) return "";
               const change = pricePerCaratChanges[idx];
-              if (change === null || change === undefined || idx === 0)
-                return "";
+              if (change === null || change === undefined) return "";
               const sign = change >= 0 ? "+" : "";
-              return `{pc|${sign}${change.toFixed(2)}%}`;
+              return change >= 0
+                ? `{increase|${sign}${change.toFixed(2)}%}`
+                : `{decrease|${sign}${change.toFixed(2)}%}`;
             },
             rich: {
-              pc: {
-                color: function (params) {
-                  const idx = params.dataIndex;
-                  const change = pricePerCaratChanges[idx];
-                  return change >= 0 ? "#4caf50" : "#f44336";
-                },
+              increase: {
                 fontWeight: "bold",
                 fontSize: 12,
                 padding: [2, 4],
                 borderRadius: 4,
-                // backgroundColor: "rgba(255,255,255,0.7)",
-                backgroundColor: "#c23531",
+                backgroundColor: "#4caf50",
+                color: "#fff",
+              },
+              decrease: {
+                fontWeight: "bold",
+                fontSize: 12,
+                padding: [2, 4],
+                borderRadius: 4,
+                backgroundColor: "#f44336",
                 color: "#fff",
               },
             },
@@ -220,40 +262,41 @@ const CombinedValueChart = ({
           name: "Total Value ($ thousands)",
           type: "line",
           smooth: true,
-          data: totalValues,
+          data: totalValueVisualData,
           yAxisIndex: 1,
+          symbolSize: 8,
           lineStyle: {
             width: 3,
-            color: "#2f4554",
-          },
-          symbolSize: 8,
-          itemStyle: {
-            color: "#2f4554",
+            color: "#008080", // Teal color for the line
           },
           label: {
             show: true,
             position: "bottom",
             formatter: function (params) {
               const idx = params.dataIndex;
+              if (idx === 0) return "";
               const change = totalValueChanges[idx];
-              if (change === null || change === undefined || idx === 0)
-                return "";
+              if (change === null || change === undefined) return "";
               const sign = change >= 0 ? "+" : "";
-              return `{tv|${sign}${change.toFixed(2)}%}`;
+              return change >= 0
+                ? `{increase|${sign}${change.toFixed(2)}%}`
+                : `{decrease|${sign}${change.toFixed(2)}%}`;
             },
             rich: {
-              tv: {
-                color: function (params) {
-                  const idx = params.dataIndex;
-                  const change = totalValueChanges[idx];
-                  return change >= 0 ? "#4caf50" : "#f44336";
-                },
+              increase: {
                 fontWeight: "bold",
                 fontSize: 12,
                 padding: [2, 4],
                 borderRadius: 4,
-                // backgroundColor: "rgba(255,255,255,0.7)",
-                backgroundColor: "#2f4554",
+                backgroundColor: "#4caf50",
+                color: "#fff",
+              },
+              decrease: {
+                fontWeight: "bold",
+                fontSize: 12,
+                padding: [2, 4],
+                borderRadius: 4,
+                backgroundColor: "#f44336",
                 color: "#fff",
               },
             },

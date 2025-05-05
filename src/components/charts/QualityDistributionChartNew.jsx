@@ -91,6 +91,11 @@ const QualityModelChart = ({
           },
           data: areaData,
           z: 10,
+          // These are crucial for click events to work
+          symbol: "circle",
+          symbolSize: 8,
+          triggerLineEvent: true, // Enable line click events
+          triggerEvent: true, // Enable click events for this series
         },
         {
           name: `Quality ${quality} (%)`,
@@ -105,6 +110,7 @@ const QualityModelChart = ({
           },
           data: percentageData,
           z: 20,
+          triggerEvent: true, // Enable click events for this series
         },
       ];
     });
@@ -139,6 +145,7 @@ const QualityModelChart = ({
         },
       },
       z: 30,
+      triggerEvent: true, // Enable click events for this series
     });
 
     // Create tooltip formatter
@@ -269,7 +276,6 @@ const QualityModelChart = ({
           "Total Valuation",
         ],
         selected: {
-          // Hide percentage series by default to avoid clutter
           ...qualities.reduce((acc, q) => {
             acc[`Quality ${q} (%)`] = false;
             return acc;
@@ -283,7 +289,6 @@ const QualityModelChart = ({
         bottom: "10%",
         containLabel: true,
       },
-      // Only bottom slider dataZoom is included as requested
       dataZoom: [
         {
           start: 0,
@@ -343,31 +348,47 @@ const QualityModelChart = ({
 
     chart.setOption(option);
 
-   
-    // Click event handling
-    chart.on("click", (params) => {
-        console.log("Chart clicked:", params);
-        
-        if (onClick) {
-          if (params.seriesName === "Total Valuation") {
-            console.log("Total Valuation clicked:", params.name);
+    // Handle click event - improved version
+    const handleClick = (params) => {
+      console.log("Chart click params:", params);
+
+      if (!onClick) return;
+
+      // Handle different click scenarios
+      if (params.seriesType === "line") {
+        if (params.seriesName === "Total Valuation") {
+          onClick({
+            type: "total",
+            timePeriod: params.name,
+            value: params.value,
+          });
+        } else if (params.seriesName.includes("(Value)")) {
+          const qualityMatch = params.seriesName.match(/Quality (\d+)/);
+          if (qualityMatch) {
             onClick({
-              isTotal: true,
+              type: "qualityValue",
+              quality: parseInt(qualityMatch[1], 10),
               timePeriod: params.name,
+              value: params.value,
             });
-          } else {
-            // Extract quality from series name
-            const match = params.seriesName.match(/Quality (\d+)/);
-            if (match) {
-              console.log("Quality clicked:", Number(match[1]), params.name);
-              onClick({
-                quality: Number(match[1]),
-                timePeriod: params.name,
-              });
-            }
+          }
+        } else if (params.seriesName.includes("(%)")) {
+          const qualityMatch = params.seriesName.match(/Quality (\d+)/);
+          if (qualityMatch) {
+            onClick({
+              type: "qualityPercentage",
+              quality: parseInt(qualityMatch[1], 10),
+              timePeriod: params.name,
+              percentage: params.value,
+            });
           }
         }
-      });
+      }
+    };
+
+    // Set up event listeners
+    chart.off("click"); // Remove previous listeners
+    chart.on("click", handleClick);
 
     // Handle resize
     const handleResize = () => chart.resize();
@@ -375,6 +396,7 @@ const QualityModelChart = ({
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      chart.off("click"); // Clean up
       chart.dispose();
     };
   }, [data, onClick]);
@@ -382,7 +404,13 @@ const QualityModelChart = ({
   return (
     <div
       ref={chartRef}
-      style={{ width: dimensions.width, height: dimensions.height }}
+      style={{
+        width: dimensions.width,
+        height: dimensions.height,
+        // Ensure the container is properly set up for events
+        position: "relative",
+        zIndex: 0,
+      }}
     />
   );
 };
