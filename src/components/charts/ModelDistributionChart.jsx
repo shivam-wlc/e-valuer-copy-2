@@ -60,6 +60,42 @@ const ModelDistributionChart = ({
         const modelData = processedData[period].models[model];
         return modelData ? modelData.valuation / 1000 : 0;
       }),
+
+      label: {
+        show: true,
+        position: "inside",
+        formatter: (params) => {
+          const timePeriod = params.name;
+
+          const periodData = processedData[timePeriod];
+
+          if (periodData?.models) {
+            let data = periodData?.models;
+
+            const filteredData = Object.entries(data).filter(
+              ([key, value]) => value.valuation >= 10
+            );
+
+            if (filteredData.length < 8) {
+              const value = params.value * 1000;
+              const total = periodData?.totalValuation || 1;
+              const percent = (value / total) * 100;
+
+              if (value === 0) {
+                return "";
+              }
+
+              return `${percent.toFixed(1)}%`;
+            } else {
+              return "";
+            }
+          } else {
+            return "";
+          }
+        },
+        fontSize: 10,
+        color: "#fff",
+      },
     }));
 
     // Prepare tooltip formatter to show valuation and percentage
