@@ -8,6 +8,12 @@ import {
   Tabs,
   Tab,
   ButtonGroup,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import {
   FilterList,
@@ -30,6 +36,9 @@ import ExpandableChart from "../components/ExpandableChart";
 import QualityModelBarChart from "../components/charts/QualityDistributionChart";
 import QualityModelBarChartNew from "../components/charts/QualityDistributionChartNew";
 import Navbar from "../components/Navbar";
+import TotalWeight from "../components/dataSummary/TotalWeight";
+
+//dataSummary
 
 const Dashboard = () => {
   const [viewMode, setViewMode] = useState("graph");
@@ -256,6 +265,8 @@ const Dashboard = () => {
               gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
             }}
           >
+            <TotalWeight data={filteredData} />
+
             <ExpandableChart
               chartData={filteredData}
               title="SizeDistributionChart"
@@ -286,7 +297,7 @@ const Dashboard = () => {
               />
             </ExpandableChart>
 
-            <ExpandableChart
+            {/* <ExpandableChart
               chartData={filteredData}
               title="QualityDistributionChart"
             >
@@ -294,7 +305,7 @@ const Dashboard = () => {
                 data={filteredData}
                 onClick={handleChartClick}
               />
-            </ExpandableChart>
+            </ExpandableChart> */}
 
             <ExpandableChart
               chartData={filteredData}
