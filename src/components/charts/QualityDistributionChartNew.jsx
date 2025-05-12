@@ -15,7 +15,9 @@ const QualityModelChart = ({
 
     // Process data - group by month/year and quality
     const processedData = data.reduce((acc, item) => {
-      const date = new Date(item.AuctionDate.split("/").reverse().join("-"));
+      const date = new Date(item.AuctionDate?.split("/").reverse().join("-"));
+      if (isNaN(date.getTime())) return acc; // Skip if date is invalid
+
       const monthYear = `${date.toLocaleString("default", {
         month: "long",
       })} ${date.getFullYear()}`;
@@ -53,6 +55,103 @@ const QualityModelChart = ({
       ...new Set(data.map((item) => `${item.Quality}` || "Unknown")),
     ].sort();
 
+    // Check if we have meaningful comparison data
+    const hasComparisonData = timePeriods.length > 1;
+
+    // If we don't have meaningful comparison data, show a pie chart
+    if (!hasComparisonData) {
+      // Process data for pie chart by quality
+      const qualityTotals = data.reduce((acc, item) => {
+        const qualityKey = `${item.Quality}` || "Unknown";
+        if (!acc[qualityKey]) {
+          acc[qualityKey] = 0;
+        }
+
+        const valuation =
+          item.TotalPrice || (item.PricePerCarat || 0) * (item.Carats || 0);
+
+        acc[qualityKey] += valuation;
+        return acc;
+      }, {});
+
+      const pieData = Object.entries(qualityTotals).map(([quality, value]) => ({
+        name: `Quality ${quality}`,
+        value: Math.round(value),
+      }));
+
+      const pieChartOption = {
+        tooltip: {
+          trigger: "item",
+          formatter: "{a} <br/>{b}: ${c} ({d}%)",
+        },
+        legend: {
+          top: "5%",
+          left: "center",
+        },
+        title: {
+          text: "Quality Distribution",
+          // subtext: "Total value by quality",
+          top: 0,
+          left: "center",
+        },
+        series: [
+          {
+            name: "Quality Value",
+            type: "pie",
+            radius: ["40%", "70%"],
+            avoidLabelOverlap: false,
+            padAngle: 5,
+            itemStyle: {
+              borderRadius: 10,
+            },
+            label: {
+              show: false,
+              position: "center",
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 20,
+                fontWeight: "bold",
+              },
+            },
+            labelLine: {
+              show: false,
+            },
+            data: pieData,
+          },
+        ],
+      };
+
+      chart.setOption(pieChartOption);
+
+      // Handle click event for pie chart
+      chart.off("click");
+      chart.on("click", (params) => {
+        if (onClick) {
+          const qualityMatch = params.name.match(/Quality (\d+)/);
+          if (qualityMatch) {
+            onClick({
+              type: "quality",
+              quality: parseInt(qualityMatch[1], 10),
+              value: params.value,
+            });
+          }
+        }
+      });
+
+      // Handle resize
+      const handleResize = () => chart.resize();
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        chart.off("click");
+        chart.dispose();
+      };
+    }
+
+    // If we have comparison data, continue with the original line chart
     // Calculate total valuation for each time period
     const totalValuations = timePeriods.map(
       (period) => processedData[period].totalValuation / 1000

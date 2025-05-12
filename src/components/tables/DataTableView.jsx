@@ -367,6 +367,8 @@ const DataTableView = ({ data }) => {
                                               color: theme.palette.primary.main,
                                             }}
                                           >
+                                            {col.key === "TotalPrice" && "$"}
+                                            {col.key === "Carats" && "CT "}
                                             {sum.toLocaleString(undefined, {
                                               maximumFractionDigits: 2,
                                               minimumFractionDigits: 2,

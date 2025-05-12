@@ -89,7 +89,24 @@ const CombinedValueChart = ({
     // For price per carat
     for (let i = 0; i < averagePrices.length; i++) {
       if (i === 0) {
-        pricePerCaratVisualData.push(averagePrices[i]);
+        // pricePerCaratVisualData.push(averagePrices[i]);
+
+        const color = "#008080"; // Teal color for the first point
+        pricePerCaratVisualData.push({
+          value: averagePrices[i],
+          itemStyle: {
+            color: color, // Default teal color for first point
+          },
+          label: {
+            show: true,
+            formatter: `$${parseFloat(averagePrices[i]).toLocaleString()}`,
+            backgroundColor: "#000000",
+            padding: [4, 8],
+            borderRadius: 4,
+            color: "#FFFFFF",
+            fontWeight: "bold",
+          },
+        });
       } else {
         const change = pricePerCaratChanges[i];
         const color = change >= 0 ? "#4CAF50" : "#F44336";
@@ -105,7 +122,25 @@ const CombinedValueChart = ({
     // For total value
     for (let i = 0; i < totalValues.length; i++) {
       if (i === 0) {
-        totalValueVisualData.push(totalValues[i]);
+        // totalValueVisualData.push(totalValues[i]);
+        const color = "#008080"; // Teal color for the first point
+        totalValueVisualData.push({
+          value: totalValues[i],
+          itemStyle: {
+            color: color, // Default teal color for first point
+          },
+          label: {
+            show: true,
+            formatter: `$${(
+              parseFloat(totalValues[i]) * 1000
+            ).toLocaleString()}`,
+            backgroundColor: "#000000",
+            padding: [4, 8],
+            borderRadius: 4,
+            color: "#FFFFFF",
+            fontWeight: "bold",
+          },
+        });
       } else {
         const change = totalValueChanges[i];
         const color = change >= 0 ? "#4CAF50" : "#F44336";
