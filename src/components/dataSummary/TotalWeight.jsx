@@ -18,6 +18,7 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 const TotalWeight = ({ data }) => {
   const theme = useTheme();
   const [expandedYears, setExpandedYears] = useState({});
+  const [expandedMonths, setExpandedMonths] = useState({});
 
   // Toggle expansion for a specific year
   const toggleYearExpansion = (year) => {
@@ -27,12 +28,22 @@ const TotalWeight = ({ data }) => {
     }));
   };
 
-  // Calculate summaries by year and month
+  // Toggle expansion for a specific month
+  const toggleMonthExpansion = (monthKey) => {
+    setExpandedMonths((prev) => ({
+      ...prev,
+      [monthKey]: !prev[monthKey],
+    }));
+  };
+
+  // Calculate summaries by year, month, and size category
   const summaryData = useMemo(() => {
-    if (!data || data.length === 0) return { years: {}, months: {} };
+    if (!data || data.length === 0)
+      return { years: {}, months: {}, sizeCategories: {} };
 
     const yearSummary = {};
     const monthSummary = {};
+    const sizeCategorySummary = {};
 
     data.forEach((item) => {
       try {
@@ -40,6 +51,8 @@ const TotalWeight = ({ data }) => {
         const [day, month, year] = item.AuctionDate.split("/");
         const numYear = parseInt(year);
         const monthKey = `${month}-${year}`; // Key for month-year pairs
+        const sizeCategory = item.SizeCategory || "Uncategorized";
+        const sizeCategoryMonthKey = `${monthKey}-${sizeCategory}`;
 
         // Initialize year object if it doesn't exist
         if (!yearSummary[numYear]) {
@@ -59,6 +72,16 @@ const TotalWeight = ({ data }) => {
           };
         }
 
+        // Initialize size category for month object if it doesn't exist
+        if (!sizeCategorySummary[sizeCategoryMonthKey]) {
+          sizeCategorySummary[sizeCategoryMonthKey] = {
+            monthKey,
+            sizeCategory,
+            weight: 0,
+            totalValue: 0,
+          };
+        }
+
         // Add to year totals
         yearSummary[numYear].weight += item.Carats || 0;
         yearSummary[numYear].totalValue += item.TotalPrice || 0;
@@ -66,6 +89,11 @@ const TotalWeight = ({ data }) => {
         // Add to month totals
         monthSummary[monthKey].weight += item.Carats || 0;
         monthSummary[monthKey].totalValue += item.TotalPrice || 0;
+
+        // Add to size category totals for the month
+        sizeCategorySummary[sizeCategoryMonthKey].weight += item.Carats || 0;
+        sizeCategorySummary[sizeCategoryMonthKey].totalValue +=
+          item.TotalPrice || 0;
       } catch (error) {
         console.error("Error processing date:", error);
       }
@@ -87,7 +115,20 @@ const TotalWeight = ({ data }) => {
           : 0;
     });
 
-    return { years: yearSummary, months: monthSummary };
+    // Calculate dollar per carat for each size category within month
+    Object.keys(sizeCategorySummary).forEach((key) => {
+      sizeCategorySummary[key].dollarPerCarat =
+        sizeCategorySummary[key].weight > 0
+          ? sizeCategorySummary[key].totalValue /
+            sizeCategorySummary[key].weight
+          : 0;
+    });
+
+    return {
+      years: yearSummary,
+      months: monthSummary,
+      sizeCategories: sizeCategorySummary,
+    };
   }, [data]);
 
   // Sort years in descending order
@@ -112,6 +153,13 @@ const TotalWeight = ({ data }) => {
     return Object.values(summaryData.months)
       .filter((monthData) => monthData.year === parseInt(year))
       .sort((a, b) => parseInt(a.month) - parseInt(b.month));
+  };
+
+  // Get size categories for a specific month, sorted by weight
+  const getSizeCategoriesForMonth = (monthKey) => {
+    return Object.values(summaryData.sizeCategories)
+      .filter((sizeData) => sizeData.monthKey === monthKey)
+      .sort((a, b) => b.weight - a.weight);
   };
 
   // Convert month number to month name
@@ -150,7 +198,7 @@ const TotalWeight = ({ data }) => {
           color: theme.palette.primary.main,
         }}
       >
-        Summary by Year
+        Auction summary
       </Typography>
 
       <TableContainer>
@@ -162,10 +210,10 @@ const TotalWeight = ({ data }) => {
                 Sum of Weight
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                Sum of TotalValue
+                $/Carat
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                $/Carat
+                Total Value
               </TableCell>
               <TableCell align="right"></TableCell>
             </TableRow>
@@ -187,10 +235,10 @@ const TotalWeight = ({ data }) => {
                     {formatNumber(summaryData.years[year].weight)}
                   </TableCell>
                   <TableCell align="right">
-                    {formatNumber(summaryData.years[year].totalValue)}
+                    {formatNumber(summaryData.years[year].dollarPerCarat)}
                   </TableCell>
                   <TableCell align="right">
-                    {formatNumber(summaryData.years[year].dollarPerCarat)}
+                    {formatNumber(summaryData.years[year].totalValue)}
                   </TableCell>
                   <TableCell align="right">
                     <IconButton
@@ -209,21 +257,70 @@ const TotalWeight = ({ data }) => {
                 {/* Expanded monthly data */}
                 {expandedYears[year] &&
                   getMonthsForYear(year).map((monthData) => (
-                    <TableRow key={`${year}-${monthData.month}`}>
-                      <TableCell sx={{ pl: 4 }}>
-                        {getMonthName(monthData.month)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {formatNumber(monthData.weight)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {formatNumber(monthData.totalValue)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {formatNumber(monthData.dollarPerCarat)}
-                      </TableCell>
-                      <TableCell></TableCell>
-                    </TableRow>
+                    <React.Fragment key={`${year}-${monthData.month}`}>
+                      <TableRow
+                        hover
+                        sx={{
+                          cursor: "pointer",
+                          backgroundColor: theme.palette.background.default,
+                          "&:hover": {
+                            backgroundColor: theme.palette.action.hover,
+                          },
+                        }}
+                        onClick={() =>
+                          toggleMonthExpansion(`${monthData.month}-${year}`)
+                        }
+                      >
+                        <TableCell sx={{ pl: 4 }}>
+                          {getMonthName(monthData.month)}
+                          {expandedMonths[`${monthData.month}-${year}`] ? (
+                            <ExpandLessIcon
+                              fontSize="small"
+                              sx={{ ml: 1, verticalAlign: "middle" }}
+                            />
+                          ) : (
+                            <ExpandMoreIcon
+                              fontSize="small"
+                              sx={{ ml: 1, verticalAlign: "middle" }}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          {formatNumber(monthData.weight)}
+                        </TableCell>
+                        <TableCell align="right">
+                          {formatNumber(monthData.dollarPerCarat)}
+                        </TableCell>
+                        <TableCell align="right">
+                          {formatNumber(monthData.totalValue)}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+
+                      {/* Expanded size category data for month */}
+                      {expandedMonths[`${monthData.month}-${year}`] &&
+                        getSizeCategoriesForMonth(
+                          `${monthData.month}-${year}`
+                        ).map((sizeData) => (
+                          <TableRow
+                            key={`${monthData.month}-${year}-${sizeData.sizeCategory}`}
+                          >
+                            <TableCell sx={{ pl: 8 }}>
+                              {sizeData.sizeCategory}
+                            </TableCell>
+                            <TableCell align="right">
+                              {formatNumber(sizeData.weight)}
+                            </TableCell>
+                            <TableCell align="right">
+                              {formatNumber(sizeData.dollarPerCarat)}
+                            </TableCell>
+                            <TableCell align="right">
+                              {formatNumber(sizeData.totalValue)}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        ))}
+                    </React.Fragment>
                   ))}
               </React.Fragment>
             ))}
@@ -245,7 +342,11 @@ const TotalWeight = ({ data }) => {
                     sortedYears.reduce(
                       (acc, year) => acc + summaryData.years[year].totalValue,
                       0
-                    )
+                    ) /
+                      sortedYears.reduce(
+                        (acc, year) => acc + summaryData.years[year].weight,
+                        0
+                      )
                   )}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
@@ -253,11 +354,7 @@ const TotalWeight = ({ data }) => {
                     sortedYears.reduce(
                       (acc, year) => acc + summaryData.years[year].totalValue,
                       0
-                    ) /
-                      sortedYears.reduce(
-                        (acc, year) => acc + summaryData.years[year].weight,
-                        0
-                      )
+                    )
                   )}
                 </TableCell>
                 <TableCell></TableCell>

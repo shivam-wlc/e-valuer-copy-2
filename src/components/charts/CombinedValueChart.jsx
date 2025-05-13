@@ -167,15 +167,15 @@ const CombinedValueChart = ({
         formatter: function (params) {
           let tooltip = `<div style="font-weight:bold">${params[0].axisValue}</div>`;
 
-          params.forEach((param) => {
+          // Only process the $/Carat series (first series in params array)
+          const param = params.find((p) => p.seriesName === "$/Carat");
+
+          if (param) {
             const idx = param.dataIndex;
             let changeText = "";
 
             if (idx > 0) {
-              const change =
-                param.seriesIndex === 0
-                  ? pricePerCaratChanges[idx]
-                  : totalValueChanges[idx];
+              const change = pricePerCaratChanges[idx];
 
               if (change !== null) {
                 const sign = change >= 0 ? "+" : "";
@@ -188,18 +188,12 @@ const CombinedValueChart = ({
 
             tooltip += `
               <div style="margin-top:4px">
-                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${
-                  param.color
-                };margin-right:5px"></span>
-                ${param.seriesName}: ${
-              param.seriesIndex === 1
-                ? `$${(parseFloat(param.value) * 1000).toLocaleString()}`
-                : `$${param.value}`
-            }
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${param.color};margin-right:5px"></span>
+                ${param.seriesName}: $${param.value}
                 ${changeText}
               </div>
             `;
-          });
+          }
 
           return tooltip;
         },
