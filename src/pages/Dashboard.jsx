@@ -37,6 +37,7 @@ import QualityModelBarChart from "../components/charts/QualityDistributionChart"
 import QualityModelBarChartNew from "../components/charts/QualityDistributionChartNew";
 import Navbar from "../components/Navbar";
 import TotalWeight from "../components/dataSummary/TotalWeight";
+// import SizeCatagory from "../components/dataSummary/SizeCatagory";
 
 //dataSummary
 
@@ -266,6 +267,8 @@ const Dashboard = () => {
             }}
           >
             <TotalWeight data={filteredData} />
+
+            {/* <SizeCatagory data={filteredData} /> */}
 
             <ExpandableChart
               chartData={filteredData}
