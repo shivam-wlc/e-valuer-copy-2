@@ -6,6 +6,7 @@ const SizeDistributionChart = ({
   dimensions = { width: "100%", height: "500px" },
   onClick,
 }) => {
+  console.log("SizeDistributionChart data", data);
   const chartRef = useRef(null);
 
   useEffect(() => {
