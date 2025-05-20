@@ -60,12 +60,15 @@ const CombinedValueChart = ({
 
     // For price per carat
     for (let i = 0; i < averagePrices.length; i++) {
-      if (i === 0) {
-        const color = "#008080"; // Teal color for the first point
+      const isFirstPoint = i === 0;
+      const isLastPoint = i === averagePrices.length - 1;
+
+      if (isFirstPoint) {
+        // First point - show black label only
         pricePerCaratVisualData.push({
           value: averagePrices[i],
           itemStyle: {
-            color: color, // Default teal color for first point
+            color: "#008080", // Teal color for the first point
           },
           label: {
             show: true,
@@ -75,9 +78,72 @@ const CombinedValueChart = ({
             borderRadius: 4,
             color: "#FFFFFF",
             fontWeight: "bold",
+            position: "top",
+          },
+        });
+      } else if (isLastPoint) {
+        // Last point - add two data points at same x-coordinate
+        // One for the value (bottom) and one for the percentage (top)
+        const change = pricePerCaratChanges[i];
+        const color = change >= 0 ? "#4CAF50" : "#F44336";
+        const sign = change >= 0 ? "+" : "";
+        const percentageText = `${sign}${change.toFixed(2)}%`;
+
+        // Add the point with both labels
+        pricePerCaratVisualData.push({
+          value: averagePrices[i],
+          itemStyle: {
+            color: color,
+          },
+          // Value label at the bottom
+          label: {
+            show: true,
+            formatter: [
+              // Black box with value
+              `{a|$${parseFloat(averagePrices[i]).toLocaleString()}}`,
+              // Percentage label above
+              change >= 0 ? `{b|${percentageText}}` : `{c|${percentageText}}`,
+            ].join("\n"),
+            rich: {
+              a: {
+                backgroundColor: "#000000",
+                padding: [4, 8],
+                borderRadius: 4,
+                color: "#FFFFFF",
+                fontWeight: "bold",
+                align: "center",
+                verticalAlign: "bottom",
+                lineHeight: 30,
+              },
+              b: {
+                fontWeight: "bold",
+                fontSize: 12,
+                padding: [2, 4],
+                borderRadius: 4,
+                backgroundColor: "#4caf50",
+                color: "#fff",
+                align: "center",
+                verticalAlign: "top",
+                lineHeight: 20,
+              },
+              c: {
+                fontWeight: "bold",
+                fontSize: 12,
+                padding: [2, 4],
+                borderRadius: 4,
+                backgroundColor: "#f44336",
+                color: "#fff",
+                align: "center",
+                verticalAlign: "top",
+                lineHeight: 20,
+              },
+            },
+            position: ["50%", "-30%"], // Position to avoid overlap
+            distance: 20,
           },
         });
       } else {
+        // Middle points - normal colored points
         const change = pricePerCaratChanges[i];
         const color = change >= 0 ? "#4CAF50" : "#F44336";
         pricePerCaratVisualData.push({
@@ -173,12 +239,15 @@ const CombinedValueChart = ({
             width: 3,
           },
           symbolSize: 8,
+
           label: {
             show: true,
             position: "top",
             formatter: function (params) {
               const idx = params.dataIndex;
-              if (idx === 0) return "";
+              // Don't show percentage for first point or last point (they have custom labels)
+              if (idx === 0 || idx === averagePrices.length - 1) return "";
+
               const change = pricePerCaratChanges[idx];
               if (change === null || change === undefined) return "";
               const sign = change >= 0 ? "+" : "";
